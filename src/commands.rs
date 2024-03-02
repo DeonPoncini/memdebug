@@ -129,7 +129,7 @@ pub fn view_watch_values(stream: &mut (impl Read+Write)) -> Result<Vec<Watch>> {
     read_u8_expect(stream, COMMAND_START)?;
     read_u8_expect(stream, VIEW_WATCH_COMMAND)?;
     let entries = stream.read_u32::<BigEndian>()?;
-    println!("Found {} watches", entries);
+    //println!("Found {} watches", entries);
     let mut ret = Vec::new();
     for _ in 0..entries {
         let address = stream.read_u32::<BigEndian>()?;
