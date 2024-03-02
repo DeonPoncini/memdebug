@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 byteorder = "1"
+eframe = "0"
+egui = "0"
 eio = "0"
 num-traits = "0"
 thiserror = "1"

@@ -102,6 +102,7 @@ pub fn watch_value<T: ToBytes<N>, const N: usize>(
     Ok(())
 }
 
+#[derive(Default)]
 pub struct Watch {
     pub address: u32,
     pub nbytes: u8,
