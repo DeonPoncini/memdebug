@@ -7,7 +7,7 @@ use eframe::egui;
 mod commands;
 mod error;
 
-use commands::Watch;
+use commands::{DataType, Watch};
 
 fn main() -> Result<()> {
     let options = eframe::NativeOptions::default();
@@ -25,6 +25,7 @@ pub struct Debugger {
     immediate: Watch,
     watch_string: String,
     watch_address: u32,
+    watch_datatype: DataType,
     value_string: String,
     value: u32,
 }
@@ -38,6 +39,7 @@ impl Debugger {
             immediate: Watch::default(),
             watch_string: String::new(),
             watch_address: 0,
+            watch_datatype: DataType::U32,
             value_string: String::new(),
             value: 0,
         })
@@ -66,10 +68,29 @@ impl Debugger {
                     hex_only_string(&mut self.watch_string);
                 }
             }
+            egui::ComboBox::from_label("")
+                .selected_text(format!("{}", self.watch_datatype))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::U32, format!("{}", DataType::U32));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::U16, format!("{}", DataType::U16));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::U8, format!("{}", DataType::U8));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::I32, format!("{}", DataType::I32));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::I16, format!("{}", DataType::I16));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::I8, format!("{}", DataType::I8));
+                    ui.selectable_value(&mut self.watch_datatype,
+                        DataType::F32, format!("{}", DataType::F32));
+                });
             if ui.button("Watch").clicked() {
                 println!("About to watch 0x{:x}", self.watch_address);
                 if self.watch_address != 0 {
-                    let _ = commands::watch_value::<u32, 4>(&mut self.stream, self.watch_address);
+                    let _ = commands::watch_value(&mut self.stream, self.watch_address,
+                                                  &self.watch_datatype);
                 }
             }
             if ui.button("Read").clicked() {
@@ -100,8 +121,20 @@ impl Debugger {
     fn data(&mut self, ui: &mut egui::Ui) {
         ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
             ui.label("Watches");
-            for watch in &self.watches {
-                ui.label(format!("0x{:x} = {}", watch.address, watch.value));
+            for watch in &mut self.watches {
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+                    ui.label(format!("0x{:x}", watch.address));
+                    match watch.data_type {
+                        DataType::U32 => ui.label(format!("{}", watch.value as u32)),
+                        DataType::U16 => ui.label(format!("{}", watch.value as u16)),
+                        DataType::U8 => ui.label(format!("{}", watch.value as u8)),
+                        DataType::I32 => ui.label(format!("{}", watch.value as i32)),
+                        DataType::I16 => ui.label(format!("{}", watch.value as i16)),
+                        DataType::I8 => ui.label(format!("{}", watch.value as i8)),
+                        DataType::F32 => ui.label(format!("{}", watch.value as f32)),
+                    };
+                    ui.label(format!("[{}]", watch.data_type));
+                });
             }
             ui.label("Immediate");
             if self.immediate.address != 0 {
